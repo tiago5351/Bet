@@ -31,7 +31,7 @@ module.exports = async function handler(req, res) {
     auto_recurring: {
       frequency: 1,
       frequency_type: 'months',
-      transaction_amount: 5000,
+      transaction_amount: 4999,
       currency_id: 'ARS'
     },
     back_url: 'https://tiago5351.github.io/Bet',
