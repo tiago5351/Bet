@@ -816,7 +816,7 @@ async function checkPaywall() {
   if (isAdmin) return true;
   const createdAt = new Date(currentUser.created_at);
   const days = (Date.now() - createdAt) / (1000*60*60*24);
-  if (days <= 7) return true;
+  if (days <= 0) return true;
   try {
     const r = await fetch("https://bet-beryl.vercel.app/api/check-subscription", {
       method: "POST", headers: {"Content-Type":"application/json"},
