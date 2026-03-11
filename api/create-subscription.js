@@ -2,6 +2,7 @@ const https = require('https');
 
 function mpPost(path, token, body) {
   const bodyStr = JSON.stringify(body);
+
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: 'api.mercadopago.com',
@@ -13,12 +14,19 @@ function mpPost(path, token, body) {
         'Content-Length': Buffer.byteLength(bodyStr)
       }
     }, (res) => {
+
       let data = '';
+
       res.on('data', chunk => data += chunk);
+
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch(e) { reject(e); }
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(e);
+        }
       });
+
     });
 
     req.on('error', reject);
@@ -28,6 +36,7 @@ function mpPost(path, token, body) {
 }
 
 module.exports = async function handler(req, res) {
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -36,22 +45,32 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { user_id, email } = req.body;
-  if (!user_id || !email) return res.status(400).json({ error: 'Faltan datos' });
+
+  if (!user_id || !email)
+    return res.status(400).json({ error: 'Faltan datos' });
 
   try {
+
     const data = await mpPost('/preapproval', process.env.MP_ACCESS_TOKEN, {
-      preapproval_plan_id: process.env.MP_PLAN_ID,
+      reason: "BetTrack - Suscripcion mensual",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: 4999,
+        currency_id: "ARS"
+      },
       payer_email: email,
-      back_url: 'https://tiago5351.github.io/Bet',
-      external_reference: user_id,
-      status: 'pending'
+      back_url: "https://tiago5351.github.io/Bet",
+      external_reference: user_id
     });
 
-    if (data.init_point) {
+    if (data.init_point)
       return res.status(200).json({ init_point: data.init_point });
-    }
 
-    return res.status(500).json({ error: 'Error creando suscripcion', detail: data });
+    return res.status(500).json({
+      error: 'Error creando suscripcion',
+      detail: data
+    });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
