@@ -829,7 +829,7 @@ async function checkPaywall() {
     });
     const {active} = await r.json();
     return active;
-  } catch(e) { return true; }
+  } catch(e) { return false; }
 }
 
 async function handleSubscribe() {
