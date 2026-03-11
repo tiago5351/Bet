@@ -1,4 +1,4 @@
-const CACHE = 'bettrack-v29';
+const CACHE = 'bettrack-v30';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -14,6 +14,25 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Solo interceptar GET
+  if (e.request.method !== 'GET') return;
+
+  // Para index.html: network-first con fallback a caché
+  // Así siempre intenta bajar la versión nueva primero
+  if (e.request.url.includes('index.html') || e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Para el resto (manifest, iconos): cache-first
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html')))
   );
