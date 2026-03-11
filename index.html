@@ -1693,6 +1693,41 @@ function renderAccounts(container) {
 // ─────────────────────────────────────────
 //  ADD / EDIT BET
 // ─────────────────────────────────────────
+
+function resetMarketForm() {
+  const marketType = document.getElementById('f-market-type');
+  if (marketType) marketType.value = '';
+
+  const propSection = document.getElementById('f-prop-section');
+  if (propSection) propSection.style.display = 'none';
+
+  const other = document.getElementById('f-market-other');
+  if (other) other.style.display = 'none';
+
+  const marketText = document.getElementById('f-market-text');
+  if (marketText) marketText.value = '';
+
+  const propType = document.getElementById('f-prop-type');
+  if (propType) propType.value = '';
+
+  const propLine = document.getElementById('f-prop-line');
+  if (propLine) propLine.value = '';
+
+  const propPlayer = document.getElementById('f-prop-player');
+  if (propPlayer) propPlayer.value = '';
+
+  const country = document.getElementById('f-country');
+  if (country) country.value = '';
+
+  const division = document.getElementById('f-division');
+  if (division) { division.value = ''; division.style.display = 'none'; }
+
+  const divPlaceholder = document.getElementById('f-division-placeholder');
+  if (divPlaceholder) divPlaceholder.style.display = 'block';
+
+  const suggestions = document.getElementById('f-country-suggestions');
+  if (suggestions) suggestions.style.display = 'none';
+}
 function openAddModal() {
   if (accounts.length === 0) {
     alert('Primero crea una cuenta de apuestas en la pestaña Cuentas');
