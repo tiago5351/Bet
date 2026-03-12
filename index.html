@@ -1090,7 +1090,48 @@ function updateUnitsResult() {
   }
 }
 
+function getMarketDisplay(market){
 
+if(!market) return ""
+
+const map={
+"1x2":"Resultado final",
+"doble":"Doble oportunidad",
+"ambos":"Ambos anotan",
+"ou_goles":"Over/Under goles",
+"handicap":"Hándicap",
+"corners":"Corners",
+"tarjetas":"Tarjetas",
+"remates_arco":"Remates al arco",
+"remates_totales":"Remates totales",
+"faltas":"Faltas",
+"prop":"Prop jugador"
+}
+
+return map[market] || market
+
+}
+
+function resetMarketForm(){
+
+document.getElementById("f-market-type").value=""
+
+document.getElementById("f-prop-section").style.display="none"
+document.getElementById("f-market-other").style.display="none"
+
+document.getElementById("f-prop-type").value="goles"
+document.getElementById("f-prop-line").value=""
+document.getElementById("f-prop-player").value=""
+
+document.getElementById("f-market-text").value=""
+
+}
+
+function renderStatsTab(container){
+
+renderGraph(container)
+
+}
 function uid() { return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
 
 // ─────────────────────────────────────────
