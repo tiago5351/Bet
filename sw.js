@@ -1,4 +1,4 @@
-const CACHE = 'bettrack-v31';
+const CACHE = 'bettrack-v32';
 const ASSETS = [
   './',
   './index.html',
