@@ -1,3 +1,4 @@
+let parlayEvents = []
 // ─────────────────────────────────────────
 //  SUPABASE
 // ─────────────────────────────────────────
@@ -520,6 +521,11 @@ function renderAccounts(container) {
 //  ADD / EDIT BET
 // ─────────────────────────────────────────
 function openAddModal() {
+  parlayEvents = [];
+
+  const container = document.getElementById('parlay-events');
+  if(container) container.innerHTML = '';
+  
   if (accounts.length === 0) {
     alert('Primero crea una cuenta de apuestas en la pestaña Cuentas');
     switchTab('accounts');
