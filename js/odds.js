@@ -1,6 +1,6 @@
-const ODDS_PROXY = 'https://bet-beryl.vercel.app/api/odds';
+const ODDS_API_KEY = 'af75e12d290e57478c6b237f21f16a7e';
+const ODDS_BASE = 'https://api.the-odds-api.com/v4';
 let selectedOddsEvent = null;
-let oddsMonitorInterval = null;
 
 const SPORTS_MAP = {
   'futbol': 'soccer_spain_la_liga', 'soccer': 'soccer_spain_la_liga',
@@ -23,7 +23,7 @@ async function searchOdds() {
   }
 
   try {
-    const res = await fetch(`${ODDS_PROXY}?sport=${sportKey}&markets=h2h`);
+    const res = await fetch(`${ODDS_BASE}/sports/${sportKey}/odds/?apiKey=${ODDS_API_KEY}&regions=eu&markets=h2h&bookmakers=bet365&oddsFormat=decimal`);
     if (!res.ok) throw new Error(`Error API: ${res.status}`);
     const data = await res.json();
 
@@ -61,53 +61,4 @@ function selectOddsEvent(id, name, sport) {
   document.getElementById('f-title').value = name;
   document.getElementById('odds-results').innerHTML =
     `<div style="padding:8px 12px;background:#c8f54215;border:1px solid #c8f54230;border-radius:8px;font-size:12px;color:#c8f542">✅ ${name}</div>`;
-  document.getElementById('odds-monitor-info').style.display = 'block';
 }
-
-async function checkOddsChange(bet) {
-  if (!bet.oddsEventId || !bet.oddsSport) return;
-  try {
-    const res = await fetch(`${ODDS_PROXY}?sport=${bet.oddsSport}&markets=h2h&eventId=${bet.oddsEventId}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    if (!data.length) return;
-    const b365 = data[0].bookmakers?.find(b=>b.key==='bet365');
-    const outcomes = b365?.markets?.find(m=>m.key==='h2h')?.outcomes || [];
-    const prev = bet.lastOddsSnapshot || [];
-    let changes = [];
-    outcomes.forEach(cur => {
-      const old = prev.find(p=>p.name===cur.name);
-      if (old && Math.abs(cur.price - old.price) >= 0.05) {
-        changes.push(`${cur.name.split(' ').pop()}: ${old.price} → ${cur.price}`);
-      }
-    });
-    if (changes.length) showOddsAlert(bet.title, changes.join(' | '));
-    const idx = bets.findIndex(b=>b.id===bet.id);
-    if (idx>-1) { bets[idx].lastOddsSnapshot = outcomes.map(o=>({name:o.name,price:o.price})); saveData(); }
-  } catch(e) {}
-}
-
-function showOddsAlert(title, msg) {
-  if ('Notification' in window && Notification.permission==='granted') {
-    new Notification(`📊 Cuota cambiada: ${title}`, {body: msg, icon: './icon-192.png'});
-  }
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:16px;left:12px;right:12px;background:#7b61ff;color:#fff;padding:14px 16px;border-radius:14px;z-index:9999;font-size:13px;font-weight:600;box-shadow:0 8px 32px #0009;animation:slideUp .3s ease-out';
-  el.innerHTML = `📊 Cambio de cuota<br><span style="font-weight:400;font-size:11px">${title}: ${msg}</span>`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 7000);
-}
-
-function startOddsMonitor() {
-  if ('Notification' in window && Notification.permission==='default') Notification.requestPermission();
-  if (oddsMonitorInterval) clearInterval(oddsMonitorInterval);
-  oddsMonitorInterval = setInterval(() => {
-    bets.filter(b=>b.oddsEventId && b.status==='pending').forEach(checkOddsChange);
-  }, 3 * 60 * 1000);
-}
-
-// Start on load
-window.addEventListener('load', () => {
-  setTimeout(startOddsMonitor, 3000);
-}, {once: true});
-
