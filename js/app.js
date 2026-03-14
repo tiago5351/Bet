@@ -541,7 +541,10 @@ function openAddModal() {
   document.getElementById('f-notes').value = '';
   document.getElementById('photo-previews').innerHTML = '';
   document.getElementById('odds-results').innerHTML = '';
-  document.getElementById('odds-monitor-info').style.display = 'none';
+
+  const oddsInfo = document.getElementById('odds-monitor-info');
+  if (oddsInfo) oddsInfo.style.display = 'none';
+  
   populateAccountSelect();
   updateStatusBtns();
   document.getElementById('modal-add').classList.add('open');
