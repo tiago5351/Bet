@@ -163,6 +163,30 @@ function renderROI(container) {
       <h2 style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">ROI por segmento</h2>
       <p style="color:#6b6b8a;font-size:13px">${closed.length} apuestas analizadas</p>
     </div>
+    <div style="display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap">
+
+<select onchange="roiFilters.sport=this.value||null;renderStatsTab(document.getElementById('main-content'))">
+<option value="">Todos los deportes</option>
+<option value="football">Fútbol</option>
+<option value="basketball">Basket</option>
+<option value="tennis">Tenis</option>
+</select>
+
+<select onchange="roiFilters.marketType=this.value||null;renderStatsTab(document.getElementById('main-content'))">
+<option value="">Todos los mercados</option>
+<option value="winner">Ganador</option>
+<option value="overunder">Over/Under</option>
+<option value="spread">Spread</option>
+</select>
+
+<select onchange="roiFilters.country=this.value||null;renderStatsTab(document.getElementById('main-content'))">
+<option value="">Todos los países</option>
+<option value="España">España</option>
+<option value="Inglaterra">Inglaterra</option>
+<option value="Argentina">Argentina</option>
+</select>
+
+</div>
     ${section('Por tipo de mercado', segments.markets)}
     ${section('Por país', segments.countries)}
   `;
