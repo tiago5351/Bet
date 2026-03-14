@@ -1,4 +1,4 @@
-const CACHE = 'bettrack-v33';
+const CACHE = 'bettrack-v34';
 
 const ASSETS = [
   './',
