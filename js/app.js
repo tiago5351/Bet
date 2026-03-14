@@ -45,6 +45,8 @@ async function handleAuth() {
     } else {
       const {error} = await sb.auth.signInWithPassword({email, password});
       if (error) throw error;
+
+      location.reload();
     }
   } catch(e) {
     showAuthError(e.message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : e.message);
