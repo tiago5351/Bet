@@ -566,7 +566,7 @@ function editBet(id) {
   document.getElementById('f-real-profit').value = b.realProfit||'';
   document.getElementById('f-notes').value = b.notes||'';
   document.getElementById('odds-results').innerHTML = '';
-  document.getElementById('odds-monitor-info').style.display = b.oddsEventId ? 'block' : 'none';
+  
   populateAccountSelect(b.accountId);
   updateStatusBtns();
   renderPhotoPreviews();
