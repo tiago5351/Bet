@@ -556,6 +556,69 @@ function openAddModal() {
   document.getElementById('modal-add').classList.add('open');
 }
 
+function addParlayEvent(){
+  const id = Date.now();
+
+  parlayEvents.push({
+    id, 
+    title:'',
+    odds:''
+  });
+
+  renderParlayEvents();
+}
+
+function renderParlayEvents(){
+  const container = document.getElementById('parlay-events');
+  if(!container) return;
+
+  container.innerHTML = parlayEvents.map((e,i)=>`
+    <div style="
+      background:#10101c;
+      border:1px solid #2a2a40;
+      border-radius:10px;
+      padding:10px;
+      margin-bottom:8px">
+
+      <div style="font-size:12px;color:#6b6b8a;margin-bottom:6px">
+        Evento ${i+1}
+      </div>
+
+      <input class="form-input"
+        placeholder="Partido / evento"
+        value="${e.title}"
+        onchange="updateParlayTitle(${e.id}, this.value)">
+
+      <input class="form-input"
+        style="margin-top:6px"
+        type="number"
+        step="0.01"
+        placeholder="Cuota"
+        value="${e.odds}"
+        onchange="updateParlayOdds(${e.id}, this.value)">
+    </div>
+  `).join('');
+}
+
+function updateParlayTitle(id,value){
+  const e = parlayEvents.find(x=>x.id===id);
+  if(e) e.title = value;
+}
+
+function updateParlayOdds(id,value){
+  const e = parlayEvents.find(x=>x.id===id);
+  if(e) e.odds = parseFloat(value)||0;
+}
+
+function getParlayOdds(){
+  if(parlayEvents.length === 0) return null;
+
+  return parlayEvents.reduce(
+    (p,e)=>p*(parseFloat(e.odds)||1),
+    1
+  );
+}
+
 function editBet(id) {
   const b = bets.find(x=>x.id===id);
   if (!b) return;
@@ -600,6 +663,13 @@ function saveBet() {
     created: editingBetId ? (bets.find(b=>b.id===editingBetId)||{}).created||Date.now() : Date.now(),
     updated: Date.now()
   };
+  const parlayOdds = getParlayOdds();
+
+if(parlayEvents.length > 1){
+  bet.odds = parlayOdds;
+  bet.events = [...parlayEvents];
+  bet.isParlay = true;
+}
   if (editingBetId) { const idx=bets.findIndex(b=>b.id===editingBetId); if(idx>-1) bets[idx]=bet; }
   else bets.unshift(bet);
   saveData();
