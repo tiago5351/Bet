@@ -34,9 +34,86 @@ function switchStatsSubTab(tab) {
 // ─────────────────────────────────────────
 //  ROI POR MERCADO
 // ─────────────────────────────────────────
+let roiFilters = {
+  sport: null, 
+  marketType: null, 
+  country: null
+};
+function buildRoiSegments(bets, filters) {
+  function getProfit(bet) {
+    if (bet.realProfit !== undefined && bet.realProfit !== '' && bet.realProfit !== null)
+      return parseFloat(bet.realProfit);
+    if (bet.status === 'won') return ((parseFloat(bet.odds) || 1) - 1) * (parseFloat(bet.amount) || 0);
+    if (bet.status === 'lost') return -(parseFloat(bet.amount) || 0);
+    return 0;
+  }
+
+  function parseMarket(bet) {
+    try {
+      const m = JSON.parse(bet.market);
+      return { type: m.type || bet.market, country: m.country || null, sport: m.sport || null };
+    } catch(e) {
+      return { type: bet.market || null, country: null, sport: null };
+    }
+  }
+
+  function buildSegment(group) {
+    const amount = group.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0);
+    const profit = group.reduce((s, b) => s + getProfit(b), 0);
+    return {
+      bets: group.length,
+      amount,
+      profit,
+      roi: amount > 0 ? (profit / amount) * 100 : 0
+    };
+  }
+
+  const filtered = bets.filter(bet => {
+    const m = parseMarket(bet);
+    if (filters.sport && m.sport !== filters.sport) return false;
+    if (filters.marketType && m.type !== filters.marketType) return false;
+    if (filters.country && m.country !== filters.country) return false;
+    return true;
+  });
+
+  const totalSegment = buildSegment(filtered);
+
+  const byMarket = {};
+  const byCountry = {};
+
+  filtered.forEach(bet => {
+    const m = parseMarket(bet);
+    if (m.type) {
+      if (!byMarket[m.type]) byMarket[m.type] = [];
+      byMarket[m.type].push(bet);
+    }
+    if (m.country) {
+      if (!byCountry[m.country]) byCountry[m.country] = [];
+      byCountry[m.country].push(bet);
+    }
+  });
+
+  const markets = Object.entries(byMarket)
+    .filter(([, group]) => group.length >= 5)
+    .map(([label, group]) => ({ label, ...buildSegment(group) }))
+    .sort((a, b) => b.profit - a.profit);
+
+  const countries = Object.entries(byCountry)
+    .filter(([, group]) => group.length >= 5)
+    .map(([label, group]) => ({ label, ...buildSegment(group) }))
+    .sort((a, b) => b.profit - a.profit);
+
+  return {
+    total: { bets: filtered.length, ...totalSegment },
+    markets,
+    countries
+  };
+}
+
 function renderROI(container) {
   const closed = filteredBets().filter(b => b.status !== 'pending' && b.status !== 'cancelled');
-
+  const segments = buildRoiSegments(closed, roiFilters);
+  
   if (closed.length === 0) {
     container.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">Sin datos</div><div class="empty-sub">Agrega apuestas cerradas para ver el ROI por mercado</div></div>`;
     return;
