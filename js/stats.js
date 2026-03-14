@@ -119,49 +119,10 @@ function renderROI(container) {
     return;
   }
 
-  const byMarket = {};
-  const byCountry = {};
-  const byDivision = {};
-
-  closed.forEach(b => {
-    const profit = getBetProfit(b);
-    const amount = parseFloat(b.amount) || 0;
-    let mtype = 'Sin especificar';
-    let country = null;
-    let division = null;
-    try {
-      const m = JSON.parse(b.market);
-      mtype = MARKET_LABELS[m.type] || m.type || 'Sin especificar';
-      country = m.country;
-      division = m.division;
-    } catch(e) {
-      if (b.market) mtype = b.market;
-    }
-    if (!byMarket[mtype]) byMarket[mtype] = { won: 0, total: 0, profit: 0, amount: 0 };
-    byMarket[mtype].total++;
-    byMarket[mtype].profit += profit;
-    byMarket[mtype].amount += amount;
-    if (b.status === 'won') byMarket[mtype].won++;
-    if (country) {
-      if (!byCountry[country]) byCountry[country] = { won: 0, total: 0, profit: 0, amount: 0 };
-      byCountry[country].total++;
-      byCountry[country].profit += profit;
-      byCountry[country].amount += amount;
-      if (b.status === 'won') byCountry[country].won++;
-    }
-    if (division) {
-      const key = division + (country ? ` (${country})` : '');
-      if (!byDivision[key]) byDivision[key] = { won: 0, total: 0, profit: 0, amount: 0 };
-      byDivision[key].total++;
-      byDivision[key].profit += profit;
-      byDivision[key].amount += amount;
-      if (b.status === 'won') byDivision[key].won++;
-    }
-  });
 
   function roiCard(label, data) {
-    const roi = data.amount > 0 ? ((data.profit / data.amount) * 100).toFixed(1) : '0.0';
-    const wr = ((data.won / data.total) * 100).toFixed(0);
+    const roi = data.roi.toFixed(1);
+    const wr = '-';
     const profitColor = data.profit >= 0 ? '#c8f542' : '#ff4d6d';
     const roiColor = parseFloat(roi) >= 0 ? '#c8f542' : '#ff4d6d';
     const profitSign = data.profit >= 0 ? '+' : '';
@@ -169,7 +130,7 @@ function renderROI(container) {
       <div style="background:#10101c;border:1px solid #2a2a40;border-radius:14px;padding:16px;margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div style="font-size:14px;font-weight:700;color:#f0f0ff;flex:1;padding-right:8px">${label}</div>
-          <div style="font-size:11px;color:#6b6b8a;white-space:nowrap">${data.total} apuesta${data.total!==1?'s':''}</div>
+          <div style="font-size:11px;color:#6b6b8a;white-space:nowrap">${data.bets} apuesta${data.bets!==1?'s':''}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
           <div style="text-align:center">
@@ -189,13 +150,12 @@ function renderROI(container) {
   }
 
   function section(title, data) {
-    const entries = Object.entries(data).sort((a,b) => b[1].profit - a[1].profit);
-    if (entries.length === 0) return '';
-    return `
-      <div style="font-size:11px;color:#c8f542;letter-spacing:0.1em;margin:20px 0 10px">// ${title.toUpperCase()}</div>
-      ${entries.map(([k, v]) => roiCard(k, v)).join('')}
-    `;
-  }
+  if (!data || data.length === 0) return '';
+  return `
+    <div style="font-size:11px;color:#c8f542;letter-spacing:0.1em;margin:20px 0 10px">// ${title.toUpperCase()}</div>
+    ${data.map(seg => roiCard(seg.label, seg)).join('')}
+  `;
+}
 
   container.innerHTML = `
     <div style="padding:4px 0 20px">
@@ -203,9 +163,8 @@ function renderROI(container) {
       <h2 style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;margin-bottom:4px">ROI por segmento</h2>
       <p style="color:#6b6b8a;font-size:13px">${closed.length} apuestas analizadas</p>
     </div>
-    ${section('Por tipo de mercado', byMarket)}
-    ${Object.keys(byCountry).length ? section('Por país', byCountry) : ''}
-    ${Object.keys(byDivision).length ? section('Por división', byDivision) : ''}
+    ${section('Por tipo de mercado', segments.markets)}
+    ${section('Por país', segments.countries)}
   `;
 }
 
