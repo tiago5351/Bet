@@ -596,7 +596,7 @@ function renderParlayEvents(){
         step="0.01"
         placeholder="Cuota"
         value="${e.odds}"
-        onchange="updateParlayOdds(${e.id}, this.value)">
+        oninput="updateParlayOdds(${e.id}, this.value)">
     </div>
   `).join('');
 }
