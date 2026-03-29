@@ -562,6 +562,7 @@ function addParlayEvent(){
   parlayEvents.push({
     id, 
     title:'',
+    market:'',
     odds:''
   });
 
@@ -589,6 +590,17 @@ function renderParlayEvents(){
         placeholder="Partido / evento"
         value="${e.title}"
         onchange="updateParlayTitle(${e.id}, this.value)">
+
+      <select class="form-input"
+style="margin-top:6px"
+onchange="updateParlayMarket(${e.id}, this.value)">
+
+  <option value="">Seleccionar mercado</option>
+  <option value="winner" ${e.market==='winner'?'selected':''}>Ganador</option>
+  <option value="overunder" ${e.market==='overunder'?'selected':''}>Over/Under</option>
+  <option value="spread" ${e.market==='spread'?'selected':''}>Hándicap</option>
+
+</select>
 
       <input class="form-input"
         style="margin-top:6px"
@@ -638,6 +650,11 @@ function updateParlayOdds(id,value){
   if(e) e.odds = parseFloat(value)||0;
 
   renderParlayTotalOdds();
+}
+
+function updateParlayMarket(id, value){
+  const e = parlayEvents.find(x => x.id === id);
+  if(e) e.market = value;
 }
 
 function getParlayOdds(){
