@@ -910,13 +910,38 @@ if ('serviceWorker' in navigator) {
 // ─────────────────────────────────────────
 //  NOTIFICATIONS
 // ─────────────────────────────────────────
-async function requestNotificationPermission() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    const perm = await Notification.requestPermission();
-    if (perm === 'granted') showToast('🔔 Notificaciones activadas. Recibirás alertas 15 min antes de cada apuesta.');
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function subscribeToPush() {
+  const reg = await navigator.serviceWorker.ready;
+
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array('ACA_VA_TU_PUBLIC_KEY')
+  });
+
+  await fetch('/api/save-subscription', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(sub)
+  });
+}
+
+async function enableNotifications() {
+  const perm = await Notification.requestPermission();
+
+  if (perm === 'granted') {
+    await subscribeToPush();
+    showToast('🔔 Notificaciones activadas');
   }
 }
+
+<button onclick="enableNotifications()">🔔 Activar notificaciones</button>
 
 function scheduleAllNotifications() {
   if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
