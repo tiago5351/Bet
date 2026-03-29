@@ -1,11 +1,24 @@
-let subscriptions = [];
+module.exports = async (req, res) => {
+  try {
+    // solo permitir POST
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-export default function handler(req, res) {
-  const sub = req.body;
+    const sub = req.body;
 
-  subscriptions.push(sub);
+    if (!sub) {
+      return res.status(400).json({ error: 'No subscription received' });
+    }
 
-  console.log('SUB GUARDADA', subscriptions.length);
+    // 👇 log para verificar que funciona
+    console.log('📩 SUB GUARDADA');
 
-  res.status(200).json({ok:true});
-}
+    // ⚠️ por ahora no guardamos en DB (solo test)
+    return res.status(200).json({ ok: true });
+
+  } catch (err) {
+    console.error('ERROR save-subscription:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
