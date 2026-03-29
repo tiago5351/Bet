@@ -69,6 +69,9 @@ function buildRoiSegments(bets, filters) {
   }
 
   const filtered = bets.filter(bet => {
+    
+    if (bet.isParlay) return false;
+    
     const m = parseMarket(bet);
     if (filters.sport && m.sport !== filters.sport) return false;
     if (filters.marketType && m.type !== filters.marketType) return false;
