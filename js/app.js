@@ -993,6 +993,8 @@ async function enableNotifications() {
   }
 }
 
+window.enableNotifications = enableNotifications;
+
 function scheduleAllNotifications() {
   if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
