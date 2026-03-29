@@ -566,6 +566,7 @@ function addParlayEvent(){
   });
 
   renderParlayEvents();
+  renderParlayTotalOdds();
 }
 
 function renderParlayEvents(){
@@ -598,6 +599,33 @@ function renderParlayEvents(){
         onchange="updateParlayOdds(${e.id}, this.value)">
     </div>
   `).join('');
+}
+
+function renderParlayTotalOdds(){
+  const el = document.getElementById('parlay-total-odds');
+  if(!el) return;
+
+  const odds = getParlayOdds();
+
+  if(!odds || parlayEvents.length < 2){
+    el.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="
+      margin-top:10px;
+      padding:10px;
+      border:1px solid #2a2a40;
+      border-radius:10px;
+      background:#10101c;
+      text-align:center;
+      font-weight:700;
+      color:#c8f542;
+    ">
+      Cuota total: ${odds.toFixed(2)}
+    </div>
+  `;
 }
 
 function updateParlayTitle(id,value){
