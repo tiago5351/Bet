@@ -930,7 +930,7 @@ async function subscribeToPush() {
 
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array('ACA_VA_TU_PUBLIC_KEY')
+    applicationServerKey: urlBase64ToUint8Array('BEPlMeEDDQD6AuPl5p9xt1bMgCs3iTXYCvngN9GeqQhaOwFS4rs0KZmQh-Rj7-NR8Hk9m1SRUtjj85Ck9QpNtI4')
   });
 
   await fetch('/api/save-subscription', {
