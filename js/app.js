@@ -493,27 +493,71 @@ function setStatusFilter(k) {
 // ─────────────────────────────────────────
 function renderAccounts(container) {
   if (accounts.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🏦</div><div class="empty-title">Sin cuentas</div><div class="empty-sub">Crea tu primera cuenta de apuestas</div></div>`;
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">🏦</div>
+        <div class="empty-title">Sin cuentas</div>
+        <div class="empty-sub">Crea tu primera cuenta de apuestas</div>
+      </div>
+    `;
     return;
   }
-  let html = `<div class="section-title">Mis Cuentas</div><div class="section-sub">${accounts.length} cuenta${accounts.length!==1?'s':''} registrada${accounts.length!==1?'s':''}</div>`;
+
+  let html = `
+    <div class="section-title">Mis Cuentas</div>
+    <div class="section-sub">
+      ${accounts.length} cuenta${accounts.length!==1?'s':''} registrada${accounts.length!==1?'s':''}
+    </div>
+  `;
+
+  // 🔔 BOTÓN (BIEN UBICADO)
+  html += `
+    <div style="margin:10px 0">
+      <button onclick="enableNotifications()" style="
+        background:#c8f542;
+        color:#080810;
+        border:none;
+        padding:10px 14px;
+        border-radius:10px;
+        font-weight:600;
+        cursor:pointer;
+      ">
+        🔔 Activar notificaciones
+      </button>
+    </div>
+  `;
+
+  // 👇 SOLO UN LOOP
   accounts.forEach(a => {
     const ab = bets.filter(b=>b.accountId===a.id);
     const won = ab.filter(b=>b.status==='won').length;
     const pnl = ab.reduce((s,b)=>s+getBetProfit(b),0);
+
     html += `
       <div class="account-card" onclick="filterAccount('${a.id}', document.querySelector('[data-acc=\\'${a.id}\\']') || document.querySelector('[data-acc]'));switchTab('bets')">
-        <div class="account-avatar" style="background:${a.color}20;color:${a.color}">${a.name.slice(0,2).toUpperCase()}</div>
+        <div class="account-avatar" style="background:${a.color}20;color:${a.color}">
+          ${a.name.slice(0,2).toUpperCase()}
+        </div>
         <div class="account-info">
           <div class="account-name">${a.name}</div>
-          <div class="account-meta">${a.user ? `<span style="color:${a.color}">${a.user}</span> · ` : ''}${ab.length} apuesta${ab.length!==1?'s':''} · P&L: <span style="color:${pnl>=0?'#c8f542':'#ff4d6d'}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(0)}</span></div>
+          <div class="account-meta">
+            ${a.user ? `<span style="color:${a.color}">${a.user}</span> · ` : ''}
+            ${ab.length} apuesta${ab.length!==1?'s':''} · 
+            P&L: <span style="color:${pnl>=0?'#c8f542':'#ff4d6d'}">
+              ${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(0)}
+            </span>
+          </div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
           <div class="account-badge">${won}✓</div>
-          <button onclick="event.stopPropagation();deleteAccount('${a.id}')" style="background:none;border:none;color:#6b6b8a;font-size:11px;cursor:pointer">Eliminar</button>
+          <button onclick="event.stopPropagation();deleteAccount('${a.id}')" style="background:none;border:none;color:#6b6b8a;font-size:11px;cursor:pointer">
+            Eliminar
+          </button>
         </div>
-      </div>`;
+      </div>
+    `;
   });
+
   container.innerHTML = html;
 }
 
@@ -948,8 +992,6 @@ async function enableNotifications() {
     showToast('🔔 Notificaciones activadas');
   }
 }
-
-<button onclick="enableNotifications()">🔔 Activar notificaciones</button>
 
 function scheduleAllNotifications() {
   if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
