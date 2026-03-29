@@ -636,6 +636,8 @@ function updateParlayTitle(id,value){
 function updateParlayOdds(id,value){
   const e = parlayEvents.find(x=>x.id===id);
   if(e) e.odds = parseFloat(value)||0;
+
+  renderParlayTotalOdds();
 }
 
 function getParlayOdds(){
