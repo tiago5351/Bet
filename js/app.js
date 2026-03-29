@@ -720,6 +720,14 @@ if(parlayEvents.length > 1){
   if (editingBetId) { const idx=bets.findIndex(b=>b.id===editingBetId); if(idx>-1) bets[idx]=bet; }
   else bets.unshift(bet);
   saveData();
+  fetch('/api/send-push', {
+  method: 'POST',
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({
+    title: '🎯 Nueva apuesta',
+    body: bet.title
+  })
+});
   scheduleAllNotifications();
   closeModal('modal-add');
   if (bet.date) { selectedCalDay=bet.date; calMonth=parseInt(bet.date.split('-')[1])-1; calYear=parseInt(bet.date.split('-')[0]); }
