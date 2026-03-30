@@ -764,6 +764,21 @@ if(parlayEvents.length > 1){
   if (editingBetId) { const idx=bets.findIndex(b=>b.id===editingBetId); if(idx>-1) bets[idx]=bet; }
   else bets.unshift(bet);
   saveData();
+  if (bet.date && bet.time) {
+  const reminderAt = new Date(${bet.date}T${bet.time});
+
+  await fetch('https://bet-beryl.vercel.app/api/save-bet', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      user_id: currentUser.id,
+      title: bet.title || 'Apuesta',
+      reminder_at: reminderAt.toISOString()
+    })
+  });
+}
   fetch('/api/send-push', {
   method: 'POST',
   headers: {'Content-Type':'application/json'},
