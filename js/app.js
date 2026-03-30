@@ -784,38 +784,7 @@ if(parlayEvents.length > 1){
   closeModal('modal-add');
   if (bet.date) { selectedCalDay=bet.date; calMonth=parseInt(bet.date.split('-')[1])-1; calYear=parseInt(bet.date.split('-')[0]); }
   renderTab();
-  // Add to iPhone Calendar if date and time provided
-  if (bet.date && bet.time && !editingBetId) {
-    addToCalendar(bet);
-  }
 }
-
-function addToCalendar(bet) {
-  if (!bet.date) { alert('Esta apuesta no tiene fecha asignada.'); return; }
-  const acc = accounts.find(a=>a.id===bet.accountId);
-  const accName = acc ? acc.name : '';
-  const market = bet.market ? ` — ${getMarketDisplay(bet.market)}` : '';
-  const title = encodeURIComponent(`🎯 ${bet.title}${market}`);
-  const notes = encodeURIComponent(`Cuenta: ${accName}\nMercado: ${getMarketDisplay(bet.market)||'-'}\nMonto: $${bet.amount||0}\nCuota: ${bet.odds||'-'}\nPotencial: $${((parseFloat(bet.amount)||0)*(parseFloat(bet.odds)||1)).toFixed(2)}\n\n${bet.notes||''}`);
-
-  if (bet.time) {
-    // Use calshow: URL scheme — opens Apple Calendar directly from PWA
-    const dt = new Date(`${bet.date}T${bet.time}:00`);
-    const timestamp = Math.floor(dt.getTime() / 1000);
-    window.location.href = `calshow:${timestamp}`;
-    // Also show reminder with Web Notifications as fallback
-    setTimeout(() => {
-      alert(`Recordatorio guardado ✅\n\n📅 ${bet.date} a las ${bet.time}\n🎯 ${bet.title}\n${bet.market ? '📊 '+getMarketDisplay(bet.market) : ''}\n\nSi no se abrió el Calendario, agrega el evento manualmente.`);
-    }, 500);
-  } else {
-    // No time — just open Calendar app
-    window.location.href = 'calshow:';
-    setTimeout(() => {
-      alert(`Abre el Calendario y agrega manualmente:\n\n📅 Fecha: ${bet.date}\n🎯 ${bet.title}\n${bet.market ? '📊 '+getMarketDisplay(bet.market) : ''}`);
-    }, 500);
-  }
-}
-
 function deleteBet(id) {
   if (!confirm('¿Eliminar esta apuesta?')) return;
   bets = bets.filter(b=>b.id!==id);
