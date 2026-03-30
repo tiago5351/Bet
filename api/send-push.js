@@ -1,29 +1,40 @@
 import webpush from 'web-push';
+import { createClient } from '@supabase/supabase-js';
 
-const VAPID_PUBLIC = process.env.VAPID_PUBLIC;
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE;
-
-webpush.setVapidDetails(
-  'mailto:tu@email.com',
-  VAPID_PUBLIC,
-  VAPID_PRIVATE
+const sb = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
 );
 
-// ⚠️ esto en prod debería venir de DB
-let subscriptions = [];
+webpush.setVapidDetails(
+  'mailto:tiagoblatter@gmail.com',
+  process.env.VAPID_PUBLIC,
+  process.env.VAPID_PRIVATE
+);
 
 export default async function handler(req, res) {
-  const {title, body} = req.body;
+  try {
+    const { data, error } = await sb
+      .from('push_subscriptions')
+      .select('*');
 
-  const payload = JSON.stringify({title, body});
+    if (error) throw error;
 
-  for (const sub of subscriptions) {
-    try {
+    const payload = JSON.stringify({
+      title: 'Test push 🚀',
+      body: 'Funciona!'
+    });
+
+    for (const row of data) {
+      const sub = JSON.parse(row.subscription);
+
       await webpush.sendNotification(sub, payload);
-    } catch(e) {
-      console.error('Push error:', e);
     }
-  }
 
-  res.status(200).json({ok:true});
+    res.status(200).json({ ok: true });
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
 }
