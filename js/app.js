@@ -779,7 +779,7 @@ if(parlayEvents.length > 1){
     })
   });
 }
-  fetch('/api/send-push', {
+  fetch('https://bet-beryl.vercel.app/api/send-push', {
   method: 'POST',
   headers: {'Content-Type':'application/json'},
   body: JSON.stringify({
