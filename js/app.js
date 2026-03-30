@@ -733,7 +733,7 @@ function editBet(id) {
   document.getElementById('modal-add').classList.add('open');
 }
 
-function saveBet() {
+async function saveBet() {
   const title = document.getElementById('f-title').value.trim();
   if (!title) { document.getElementById('f-title').focus(); return; }
   const bet = {
@@ -765,7 +765,7 @@ if(parlayEvents.length > 1){
   else bets.unshift(bet);
   saveData();
   if (bet.date && bet.time) {
-  const reminderAt = new Date(${bet.date}T${bet.time});
+  const reminderAt = new Date('${bet.date}T${bet.time}');
 
   await fetch('https://bet-beryl.vercel.app/api/save-bet', {
     method: 'POST',
