@@ -2,7 +2,8 @@
   "name": "bettrack-api",
   "version": "1.0.0",
   "dependencies": {
-    "node-fetch": "^2.6.9"
+    "node-fetch": "^2.6.9",
+    "@supabase/supabase-js": "^2.0.0"
   },
   "engines": {
     "node": "24.x"
