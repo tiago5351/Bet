@@ -779,14 +779,7 @@ if(parlayEvents.length > 1){
     })
   });
 }
-  fetch('https://bet-beryl.vercel.app/api/send-push', {
-  method: 'POST',
-  headers: {'Content-Type':'application/json'},
-  body: JSON.stringify({
-    title: '🎯 Nueva apuesta',
-    body: bet.title
-  })
-});
+
   scheduleAllNotifications();
   closeModal('modal-add');
   if (bet.date) { selectedCalDay=bet.date; calMonth=parseInt(bet.date.split('-')[1])-1; calYear=parseInt(bet.date.split('-')[0]); }
