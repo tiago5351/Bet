@@ -977,7 +977,7 @@ async function subscribeToPush() {
     applicationServerKey: urlBase64ToUint8Array('BEPlMeEDDQD6AuPl5p9xt1bMgCs3iTXYCvngN9GeqQhaOwFS4rs0KZmQh-Rj7-NR8Hk9m1SRUtjj85Ck9QpNtI4')
   });
 
-  await fetch('/api/save-subscription', {
+  await fetch('https://bet-beryl.vercel.app/api/save-subscription', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(sub)
