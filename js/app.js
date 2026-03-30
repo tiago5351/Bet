@@ -980,7 +980,7 @@ async function subscribeToPush() {
   await fetch('https://bet-beryl.vercel.app/api/save-subscription', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(sub)
+    body: JSON.stringify({...sub.toJSON(), user_id: currentUser.id})
   });
 }
 
