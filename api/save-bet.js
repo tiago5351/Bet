@@ -28,6 +28,8 @@ export default async function handler(req, res) {
       user_id,
       title,
       reminder_at
+    }, {
+      onConflict: 'user_id, reminder_at'
     });
 
     if (error) throw error;
