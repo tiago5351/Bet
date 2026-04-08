@@ -16,7 +16,9 @@ function getBetProfit(b) {
 }
 
 function renderAnalisis(main) {
-  const closed = bets.filter(b => b.status !== 'pending' && b.status !== 'cancelled');
+  const baseBets = filteredBets();
+  
+  const closed = baseBets.filter(b => b.status !== 'pending' && b.status !== 'cancelled');
   const won    = closed.filter(b => b.status === 'won');
   const lost   = closed.filter(b => b.status === 'lost');
 
