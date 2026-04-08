@@ -51,9 +51,9 @@ function renderAnalisis(main) {
   }
 
   const streakLabel = streakDir === 'won'
-    ? 🔥 ${streak.length} victorias seguidas
+    ? `🔥 ${streak.length} victorias seguidas`
     : streakDir === 'lost'
-    ? ❄️ ${streak.length} derrotas seguidas
+    ? `❄️ ${streak.length} derrotas seguidas`
     : '—';
 
   const insights = buildInsights(closed, won, lost, totalStake, totalProfit, roi);
@@ -88,18 +88,18 @@ function renderAnalisis(main) {
         </div>
         <div style="text-align:center">
           <div style="font-weight:800;color:${totalProfit>=0?'#c8f542':'#ff4d6d'}">
-            ${totalProfit>=0?'+':'-'}$${Math.abs(totalProfit).toFixed(0)}
+            ${totalProfit >= 0 ? '+$' : '-$'}${Math.abs(totalProfit).toFixed(0)}
           </div>
           <div style="font-size:10px;color:#6b6b8a">Profit</div>
         </div>
       </div>
     </div>
 
-    ${insights.map(i => `
+    ${(insights || []).map(i => `
       <div style="background:#10101c;border:1px solid #2a2a40;border-radius:12px;padding:12px;margin-bottom:8px">
         <div style="font-weight:700">${i.icon} ${i.title}</div>
         <div style="font-size:12px;color:#6b6b8a">${i.desc}</div>
-        ${i.action ? <div style="color:#c8f542;font-size:12px">→ ${i.action}</div> : ''}
+        ${i.action ? `<div style="color:#c8f542;font-size:12px">→ ${i.action}</div>` : ''}
       </div>
     `).join('')}
 
