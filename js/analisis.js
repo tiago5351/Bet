@@ -113,31 +113,52 @@ function renderAnalisis(main) {
 
 // ───────── HELPERS ─────────
 
-function buildInsights(closed) {
+function roiOf(arr) {
+  const stake  = arr.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
+  const profit = arr.reduce((s,b)=>s+getBetProfit(b),0);
+  return stake > 0 ? (profit/stake)*100 : 0;
+}
+
+function groupBy(arr, fn) {
+  return arr.reduce((acc, item) => {
+    const key = fn(item) || 'Otros';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+}
+
+function buildInsights(closed, won, lost, totalStake, totalProfit, globalRoi) {
   const insights = [];
-  if (closed.length < 3) return insights;
+  if (closed.length < 5) return insights;
 
-  function profit(b) {
-    if (b.realProfit !== undefined && b.realProfit !== '' && b.realProfit !== null)
-      return parseFloat(b.realProfit);
+  const profit = b => getBetProfit(b);
 
-    if (b.status === 'won')
-      return ((parseFloat(b.odds) || 1) - 1) * (parseFloat(b.amount) || 0);
+  // ─────────────────────────
+  // 1. PERFIL GENERAL
+  // ─────────────────────────
+  const wr = (won.length / closed.length) * 100;
 
-    if (b.status === 'lost')
-      return -(parseFloat(b.amount) || 0);
-
-    return 0;
+  if (wr >= 65 && globalRoi > 0) {
+    insights.push({
+      icon: '🧠',
+      title: 'Estás jugando bien',
+      desc: 'Buen win rate + ROI positivo. Tenés edge real.',
+      action: 'Podés escalar stake gradualmente sin romper disciplina'
+    });
   }
 
-  function roiOf(arr) {
-    const stake  = arr.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
-    const prof   = arr.reduce((s,b)=>s+profit(b),0);
-    return stake > 0 ? (prof/stake)*100 : 0;
+  if (wr < 45 && globalRoi < 0) {
+    insights.push({
+      icon: '🚨',
+      title: 'Estrategia débil',
+      desc: 'Muchos errores + ROI negativo',
+      action: 'Bajá volumen y revisá cómo elegís picks'
+    });
   }
 
   // ─────────────────────────
-  // 1. PARLAYS vs SIMPLES
+  // 2. PARLAYS
   // ─────────────────────────
   const parlays = closed.filter(b => b.isParlay);
   const singles = closed.filter(b => !b.isParlay);
@@ -149,94 +170,159 @@ function buildInsights(closed) {
     if (parlayRoi < singleRoi - 10) {
       insights.push({
         icon: '⚠️',
-        title: 'Perdés más en parlays',
-        desc: `ROI parlays: ${parlayRoi.toFixed(0)}% vs simples: ${singleRoi.toFixed(0)}%.`,
-        action: 'Reducí parlays o bajá cantidad de picks por combo.'
-      });
-    } else if (parlayRoi > singleRoi + 10) {
-      insights.push({
-        icon: '✅',
-        title: 'Los parlays te funcionan',
-        desc: `ROI parlays: +${parlayRoi.toFixed(0)}% vs simples: ${singleRoi.toFixed(0)}%.`,
-        action: 'Seguí así pero controlá el stake.'
+        title: 'Los parlays te están matando',
+        desc: 'Tus combos rinden mucho peor que las apuestas simples',
+        action: 'Reducí parlays o bajá eventos por ticket'
       });
     }
   }
 
   // ─────────────────────────
-  // 2. MEJOR / PEOR DEPORTE
+  // 3. OVERBETTING (clave)
   // ─────────────────────────
-  const bySport = {};
+  const amounts = closed.map(b => parseFloat(b.amount)||0).filter(x=>x>0);
 
-  closed.forEach(b => {
-    const key = b.oddsSport || 'Otros';
-    if (!bySport[key]) bySport[key] = [];
-    bySport[key].push(b);
-  });
+  if (amounts.length >= 5) {
+    const avg = amounts.reduce((a,b)=>a+b,0)/amounts.length;
 
-  const sports = Object.entries(bySport)
-    .filter(([,arr]) => arr.length >= 2)
-    .map(([name, arr]) => ({
-      name,
-      roi: roiOf(arr),
-      count: arr.length
-    }))
-    .sort((a,b)=>b.roi-a.roi);
+    const big = closed.filter(b => parseFloat(b.amount) > avg*1.8);
+    const normal = closed.filter(b => parseFloat(b.amount) <= avg*1.8);
 
-  if (sports.length >= 2) {
-    const best  = sports[0];
-    const worst = sports[sports.length-1];
+    if (big.length >= 2 && normal.length >= 2) {
+      const bigRoi = roiOf(big);
+      const normalRoi = roiOf(normal);
 
-    if (best.roi > 5) {
-      insights.push({
-        icon: '🏆',
-        title: `Sos fuerte en ${best.name}`,
-        desc: `ROI ${best.roi.toFixed(0)}% en ${best.count} apuestas.`,
-        action: 'Apostá más en este mercado.'
-      });
-    }
-
-    if (worst.roi < -5) {
-      insights.push({
-        icon: '📉',
-        title: `Flojo en ${worst.name}`,
-        desc: `ROI ${worst.roi.toFixed(0)}% en ${worst.count} apuestas.`,
-        action: 'Reducí exposición en este mercado.'
-      });
-    }
-  }
-
-  // ─────────────────────────
-  // 3. STAKE MAL CALIBRADO
-  // ─────────────────────────
-  const amounts = closed.map(b => parseFloat(b.amount) || 0).filter(x=>x>0);
-
-  if (amounts.length >= 4) {
-    const sorted = amounts.slice().sort((a,b)=>a-b);
-    const median = sorted[Math.floor(sorted.length/2)];
-
-    const high = closed.filter(b => (parseFloat(b.amount)||0) > median * 1.5);
-    const low  = closed.filter(b => (parseFloat(b.amount)||0) <= median * 1.5);
-
-    if (high.length >= 2 && low.length >= 2) {
-      const highRoi = roiOf(high);
-      const lowRoi  = roiOf(low);
-
-      if (highRoi < lowRoi - 10) {
+      if (bigRoi < normalRoi - 10) {
         insights.push({
           icon: '💸',
-          title: 'Apostás más cuando te va peor',
-          desc: `ROI alto stake: ${highRoi.toFixed(0)}% vs normal: ${lowRoi.toFixed(0)}%.`,
-          action: 'Limitá el tamaño máximo de apuesta.'
+          title: 'Estás sobreapostando',
+          desc: 'Cuando subís stake, tu rendimiento cae',
+          action: 'No apuestes más de 2x tu stake promedio'
         });
       }
     }
   }
 
   // ─────────────────────────
-  // 4. RACHA
+  // 4. CUOTAS
   // ─────────────────────────
-  const sorted = [...closed].sort((a,b)=>(b.date||'')>(a.date||'')?1:-1);
+  const avgOdds = closed.reduce((s,b)=>s+(parseFloat(b.odds)||0),0)/closed.length;
+
+  if (avgOdds > 2.2 && globalRoi < 0) {
+    insights.push({
+      icon: '🎲',
+      title: 'Demasiado riesgo',
+      desc: `Cuota promedio ${avgOdds.toFixed(2)} sin retorno`,
+      action: 'Estás forzando valor donde no hay edge'
+    });
+  }
+
+  if (avgOdds < 1.6 && wr < 55) {
+    insights.push({
+      icon: '📉',
+      title: 'Cuotas bajas sin edge',
+      desc: 'Ni siquiera las seguras están funcionando',
+      action: 'Revisá criterio de selección'
+    });
+  }
+
+  // ─────────────────────────
+  // 5. MEJOR MERCADO
+  // ─────────────────────────
+  const bySport = groupBy(closed, b => b.oddsSport || 'Otros');
+
+  const stats = Object.entries(bySport)
+    .filter(([,arr])=>arr.length>=2)
+    .map(([name,arr])=>({
+      name,
+      roi: roiOf(arr)
+    }))
+    .sort((a,b)=>b.roi-a.roi);
+
+  if (stats.length >= 2) {
+    const best = stats[0];
+    const worst = stats[stats.length-1];
+
+    if (best.roi > globalRoi + 8) {
+      insights.push({
+        icon: '🏆',
+        title: `Tu edge está en ${best.name}`,
+        desc: 'Ahí estás ganando claramente',
+        action: 'Meté más volumen en ese mercado'
+      });
+    }
+
+    if (worst.roi < globalRoi - 8) {
+      insights.push({
+        icon: '📉',
+        title: `Estás perdiendo en ${worst.name}`,
+        desc: 'Ahí estás quemando bankroll',
+        action: 'Reducí exposición o evitá ese mercado'
+      });
+    }
+  }
+
+  // ─────────────────────────
+  // 6. TILT (MUY IMPORTANTE)
+  // ─────────────────────────
+  let tilt = 0;
+
+  for (let i=1;i<closed.length;i++){
+    const prev = closed[i-1];
+    const curr = closed[i];
+
+    if (
+      prev.status === 'lost' &&
+      parseFloat(curr.amount) > parseFloat(prev.amount)
+    ) tilt++;
+  }
+
+  if (tilt >= 2) {
+    insights.push({
+      icon: '🧠',
+      title: 'Estás entrando en tilt',
+      desc: 'Subís stake después de perder',
+      action: 'Eso destruye bankroll a largo plazo'
+    });
+  }
+
+  // ─────────────────────────
+  // 7. TENDENCIA
+  // ─────────────────────────
+  const sortedByDate = [...closed].sort((a,b) =>
+    new Date(a.date||0) - new Date(b.date||0)
+  );
+
+  const last10 = sortedByDate.slice(-10);
+  const prev10 = sortedByDate.slice(-20, -10);
+
+  if (last10.length >= 5 && prev10.length >= 5) {
+    const roiLast = roiOf(last10);
+    const roiPrev = roiOf(prev10);
+
+    if (roiLast > roiPrev + 10) {
+      insights.push({
+        icon: '📈',
+        title: 'Estás mejorando',
+        desc: 'Tu rendimiento viene en subida',
+        action: 'Seguí exactamente con este enfoque'
+      });
+    }
+
+    if (roiLast < roiPrev - 10) {
+      insights.push({
+        icon: '📉',
+        title: 'Estás empeorando',
+        desc: 'Algo cambió y te está afectando',
+        action: 'Revisá qué estás haciendo distinto'
+      });
+    }
+  }
+
+  // ─────────────────────────
+  // 8. RACHA
+  // ─────────────────────────
+  const sorted = [...closed].sort((a,b)=> (b.date||'')>(a.date||'')?1:-1);
 
   let streak = 0;
   let dir = null;
@@ -253,42 +339,18 @@ function buildInsights(closed) {
   if (streak >= 3 && dir === 'won') {
     insights.push({
       icon: '🔥',
-      title: `${streak} victorias seguidas`,
-      desc: 'Buen momento, pero cuidado con sobreapostar.',
-      action: 'Mantené stake estable.'
+      title: `Racha de ${streak}`,
+      desc: 'Estás en un gran momento',
+      action: 'No sobreapuestes por confianza'
     });
   }
 
   if (streak >= 3 && dir === 'lost') {
     insights.push({
-      icon: '🛑',
+      icon: '❄️',
       title: `${streak} derrotas seguidas`,
-      desc: 'Racha negativa activa.',
-      action: 'Bajá stake o pausá 24h.'
-    });
-  }
-
-  // ─────────────────────────
-  // 5. WIN RATE
-  // ─────────────────────────
-  const wins = closed.filter(b=>b.status==='won').length;
-  const wr = (wins / closed.length) * 100;
-
-  if (wr >= 60 && closed.length >= 5) {
-    insights.push({
-      icon: '🎯',
-      title: `Win rate alto (${wr.toFixed(0)}%)`,
-      desc: 'Estás acertando mucho.',
-      action: 'Verificá que las cuotas tengan valor.'
-    });
-  }
-
-  if (wr < 40 && closed.length >= 5) {
-    insights.push({
-      icon: '🎲',
-      title: `Win rate bajo (${wr.toFixed(0)}%)`,
-      desc: 'Muchos picks fallidos.',
-      action: 'Reducí cantidad de apuestas.'
+      desc: 'Momento peligroso',
+      action: 'Bajá stake o frená 24h'
     });
   }
 
