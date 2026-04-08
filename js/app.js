@@ -359,7 +359,7 @@ function updateKellyResult() {
 // ─────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  ['calendar','bets','stats','accounts','kelly'].forEach(t => {
+  ['calendar','bets','stats','accounts','analisis'].forEach(t => {
     const el = document.getElementById('tab-'+t);
     if (el) el.classList.toggle('active', t===tab);
   });
@@ -372,7 +372,7 @@ function renderTab() {
   if (currentTab === 'calendar') renderCalendar(main);
   else if (currentTab === 'bets') renderBets(main);
   else if (currentTab === 'stats') renderStatsTab(main);
-  else if (currentTab === 'kelly') renderKelly(main);
+  else if (currentTab === 'analisis') renderAnalisis(main);
   else renderAccounts(main);
 }
 
