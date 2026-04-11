@@ -62,12 +62,16 @@ function buildRoiSegments(bets, filters) {
     const amount = group.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0);
     const profit = group.reduce((s, b) => s + getProfit(b), 0);
     const wonCount = group.filter(b => b.status === 'won').length;
+    const lastBets = [...group]
+      .sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1)
+      .slice(0, 5);
     return {
       bets: group.length,
       wonCount,
       amount,
       profit,
-      roi: amount > 0 ? (profit / amount) * 100 : 0
+      roi: amount > 0 ? (profit / amount) * 100 : 0,
+      lastBets
     };
   }
 
@@ -99,13 +103,16 @@ function buildRoiSegments(bets, filters) {
     }
   });
 
+  const hasActiveFilters = !!(filters.sport || filters.marketType || filters.country);
+  const minBets = hasActiveFilters ? 1 : 5;
+
   const markets = Object.entries(byMarket)
-    .filter(([, group]) => group.length >= 5)
+    .filter(([, group]) => group.length >= minBets)
     .map(([label, group]) => ({ label, ...buildSegment(group) }))
     .sort((a, b) => b.profit - a.profit);
 
   const countries = Object.entries(byCountry)
-    .filter(([, group]) => group.length >= 5)
+    .filter(([, group]) => group.length >= minBets)
     .map(([label, group]) => ({ label, ...buildSegment(group) }))
     .sort((a, b) => b.profit - a.profit);
 
@@ -119,6 +126,12 @@ function buildRoiSegments(bets, filters) {
 function rerenderROI() {
   const sub = document.getElementById('stats-subcontent');
   if (sub) renderROI(sub);
+}
+function toggleBetList(el) {
+  const list = el.nextElementSibling;
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'flex' : 'none';
+  el.textContent = isHidden ? '▾ Ocultar apuestas' : '▸ Ver últimas apuestas';
 }
 
 function renderROI(container) {
@@ -156,6 +169,24 @@ function renderROI(container) {
             <div style="font-size:10px;color:#6b6b8a;margin-top:2px">Win rate</div>
           </div>
         </div>
+      ${data.lastBets && data.lastBets.length ? `
+        <div style="margin-top:12px;border-top:1px solid #2a2a40;padding-top:10px">
+          <div onclick="toggleBetList(this)" style="font-size:11px;color:#6b6b8a;cursor:pointer;user-select:none">▸ Ver últimas apuestas</div>
+          <div style="display:none;margin-top:8px;flex-direction:column;gap:6px">
+            ${data.lastBets.map(b => {
+              const bp = b.realProfit !== undefined && b.realProfit !== '' && b.realProfit !== null
+                ? parseFloat(b.realProfit)
+                : b.status === 'won' ? ((parseFloat(b.odds)||1)-1)*(parseFloat(b.amount)||0)
+                : b.status === 'lost' ? -(parseFloat(b.amount)||0) : 0;
+              const bRoi = (parseFloat(b.amount)||0) > 0 ? (bp / parseFloat(b.amount) * 100).toFixed(1) : '—';
+              const rc = parseFloat(bRoi) >= 0 ? '#c8f542' : '#ff4d6d';
+              return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 8px;background:#181828;border-radius:8px">
+                <span style="color:#f0f0ff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${b.title || 'Sin título'}</span>
+                <span style="color:${rc};font-weight:700;flex-shrink:0">${bRoi !== '—' ? (parseFloat(bRoi)>=0?'+':'') + bRoi + '%' : '—'}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
       </div>`;
   }
 
