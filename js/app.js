@@ -16,8 +16,7 @@ async function loadUserPlan() {
   }
 
   const adminEmails = [
-    'tiagoblatter@gmail.com',
-    'santiago.segat@icloud.com'
+    'tiagoblatter@gmail.com'
   ];
 
   if (adminEmails.includes(currentUser.email)) {
