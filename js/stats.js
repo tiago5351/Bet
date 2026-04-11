@@ -126,7 +126,7 @@ function renderROI(container) {
   const segments = buildRoiSegments(closed, roiFilters);
 
   if (closed.length === 0) {
-    container.innerHTML = <div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">Sin datos</div><div class="empty-sub">Agrega apuestas cerradas para ver el ROI por mercado</div></div>;
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">Sin datos</div><div class="empty-sub">Agrega apuestas cerradas para ver el ROI por mercado</div></div>`;
     return;
   }
 
