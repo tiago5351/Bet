@@ -116,6 +116,11 @@ function buildRoiSegments(bets, filters) {
   };
 }
 
+function rerenderROI() {
+  const sub = document.getElementById('stats-subcontent');
+  if (sub) renderROI(sub);
+}
+
 function renderROI(container) {
   const closed = filteredBets().filter(b => b.status !== 'pending' && b.status !== 'cancelled');
   const segments = buildRoiSegments(closed, roiFilters);
@@ -127,8 +132,7 @@ function renderROI(container) {
 
   function roiCard(label, data) {
     const roi = data.roi.toFixed(1);
-    const won = data.wonCount || 0;
-    const wr = data.bets > 0 ? ((won / data.bets) * 100).toFixed(0) : '-';
+    const wr = data.bets > 0 ? ((data.wonCount / data.bets) * 100).toFixed(0) : '-';
     const profitColor = data.profit >= 0 ? '#c8f542' : '#ff4d6d';
     const roiColor = parseFloat(roi) >= 0 ? '#c8f542' : '#ff4d6d';
     const profitSign = data.profit >= 0 ? '+' : '';
@@ -170,19 +174,19 @@ function renderROI(container) {
       <p style="color:#6b6b8a;font-size:13px">${closed.length} apuestas analizadas</p>
     </div>
     <div style="display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap">
-      <select onchange="roiFilters.sport=this.value||null;renderROI(this.closest('#stats-subcontent,#main-content') || document.getElementById('main-content'))">
+      <select onchange="roiFilters.sport=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.sport?'selected':''}>Todos los deportes</option>
         <option value="football" ${roiFilters.sport==='football'?'selected':''}>Fútbol</option>
         <option value="basketball" ${roiFilters.sport==='basketball'?'selected':''}>Basket</option>
         <option value="tennis" ${roiFilters.sport==='tennis'?'selected':''}>Tenis</option>
       </select>
-      <select onchange="roiFilters.marketType=this.value||null;renderROI(this.closest('#stats-subcontent,#main-content') || document.getElementById('main-content'))">
+      <select onchange="roiFilters.marketType=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.marketType?'selected':''}>Todos los mercados</option>
         <option value="winner" ${roiFilters.marketType==='winner'?'selected':''}>Ganador</option>
         <option value="overunder" ${roiFilters.marketType==='overunder'?'selected':''}>Over/Under</option>
         <option value="spread" ${roiFilters.marketType==='spread'?'selected':''}>Spread</option>
       </select>
-      <select onchange="roiFilters.country=this.value||null;renderROI(this.closest('#stats-subcontent,#main-content') || document.getElementById('main-content'))">
+      <select onchange="roiFilters.country=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.country?'selected':''}>Todos los países</option>
         <option value="España" ${roiFilters.country==='España'?'selected':''}>España</option>
         <option value="Inglaterra" ${roiFilters.country==='Inglaterra'?'selected':''}>Inglaterra</option>
