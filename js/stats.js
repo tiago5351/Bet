@@ -4,6 +4,7 @@
 let statsSubTab = 'graph';
 
 function renderStatsTab(container) {
+  if (!isPro()) { renderPaywall(container); return; }
   const wrapper = document.createElement('div');
   wrapper.innerHTML = `
     <div style="display:flex;background:#10101c;border-radius:12px;padding:4px;margin-bottom:20px;gap:4px">
