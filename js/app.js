@@ -1,3 +1,73 @@
+// ─────────────────────────────────────────
+//  PLAN & FEATURE GATING
+// ─────────────────────────────────────────
+let userPlan = 'free';
+
+function isPro() { return userPlan === 'pro'; }
+
+function goPremium() {
+  window.location.href = 'https://bet-beryl.vercel.app/suscripcion';
+}
+
+async function loadUserPlan() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    userPlan = (!error && data && data.status === 'active') ? 'pro' : 'free';
+  } catch(e) {
+    userPlan = 'free';
+  }
+}
+
+function canCreateAccount() {
+  if (isPro()) return true;
+  if (!accounts || !Array.isArray(accounts)) return false;
+  return accounts.length < 1;
+}
+
+function renderPaywall(container) {
+  container.innerHTML = `
+    <div style="padding:8px 0 32px">
+      <div style="background:linear-gradient(135deg,#10101c,#181828);border:1px solid #7b61ff40;border-radius:24px;padding:28px 24px;text-align:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:#7b61ff08;pointer-events:none"></div>
+        <div style="position:absolute;bottom:-40px;left:-40px;width:200px;height:200px;border-radius:50%;background:#c8f54206;pointer-events:none"></div>
+        <div style="font-size:32px;margin-bottom:12px">⚡</div>
+        <div style="font-size:22px;font-weight:800;color:#f0f0ff;font-family:'Outfit',sans-serif;margin-bottom:6px">Desbloqueá tu ventaja</div>
+        <div style="font-size:13px;color:#6b6b8a;margin-bottom:24px;line-height:1.5">Esta función es parte del plan PRO.<br>Potenciá tu juego con análisis real.</div>
+        <div style="background:#0d0d1a;border:1px solid #2a2a40;border-radius:16px;padding:20px;margin-bottom:24px;text-align:left">
+          ${[
+            ['🧠','Coach inteligente','Detecta patrones en tus apuestas y te dice qué corregir'],
+            ['📊','Stats avanzadas','ROI por deporte, mercado y tipo de apuesta'],
+            ['🚨','Detección de errores','Tilt, overbetting y rachas negativas en tiempo real'],
+            ['📈','Tendencia de mejora','Compará períodos y medí tu progreso real'],
+            ['🏦','Cuentas ilimitadas','Gestioná todas tus casas de apuestas sin límite']
+          ].map(([icon, title, desc]) => `
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+              <span style="font-size:18px;flex-shrink:0;margin-top:1px">${icon}</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f0f0ff;margin-bottom:2px">${title}</div>
+                <div style="font-size:12px;color:#6b6b8a;line-height:1.4">${desc}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-bottom:20px">
+          <div style="font-size:11px;color:#6b6b8a;margin-bottom:4px;letter-spacing:0.05em">PLAN PRO</div>
+          <div style="font-size:36px;font-weight:800;color:#c8f542;font-family:'Outfit',sans-serif">$7.999 <span style="font-size:16px;color:#6b6b8a;font-weight:400">ARS / mes</span></div>
+        </div>
+        <button onclick="goPremium()" style="width:100%;background:#c8f542;color:#080810;border:none;border-radius:14px;padding:18px;font-size:16px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;">
+          Activar PRO →
+        </button>
+        <div style="font-size:11px;color:#6b6b8a;margin-top:12px">Cancelá cuando quieras · Sin permanencia</div>
+      </div>
+    </div>
+  `;
+}
+
 let parlayEvents = []
 // ─────────────────────────────────────────
 //  SUPABASE
@@ -151,8 +221,9 @@ window.addEventListener('load', async () => {
     currentUser = session.user;
 
     await loadData();
+        await loadUserPlan();
 
-    let canAccess = true;
+        let canAccess = true;
 
     try {
       const paywallPromise = checkPaywall();
@@ -868,6 +939,10 @@ function closeImgViewer() { document.getElementById('img-viewer').classList.remo
 //  ACCOUNTS
 // ─────────────────────────────────────────
 function openAccountModal() {
+  if (!canCreateAccount()) {
+    renderPaywall(document.getElementById('main-content'));
+    return;
+  }
   document.getElementById('acc-name').value='';
   document.getElementById('acc-user').value='';
   selectedColor = COLORS[0];
