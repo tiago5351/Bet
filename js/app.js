@@ -10,15 +10,46 @@ function goPremium() {
 }
 
 async function loadUserPlan() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    userPlan = 'free';
+    return;
+  }
+
+  // 🧠 TRIAL 7 DÍAS
+  const createdAtRaw = currentUser.created_at;
+  if (createdAtRaw) {
+    const createdAt = new Date(createdAtRaw);
+
+    if (!isNaN(createdAt)) {
+      const daysSinceSignup =
+        (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+
+      if (daysSinceSignup <= 7) {
+        userPlan = 'pro'; // 👈 trial = pro
+        return;
+      }
+    }
+  }
+
+  // 💳 SUSCRIPCIÓN REAL
   try {
     const { data, error } = await sb
       .from('subscriptions')
       .select('status')
       .eq('user_id', currentUser.id)
       .maybeSingle();
-    userPlan = (!error && data && data.status === 'active') ? 'pro' : 'free';
-  } catch(e) {
+
+    if (error) {
+      userPlan = 'free';
+      return;
+    }
+
+    userPlan =
+      data && data.status === 'active'
+        ? 'pro'
+        : 'free';
+
+  } catch (e) {
     userPlan = 'free';
   }
 }
@@ -1082,6 +1113,44 @@ function checkDailyPending() {
     document.body.appendChild(banner);
     setTimeout(() => { if (banner.parentElement) banner.remove(); }, 10000);
   }, 1500);
+}
+
+function checkTrialBanner() {
+  if (!currentUser) return;
+  if (isPro()) return;
+
+  const createdAtRaw = currentUser.created_at;
+  if (!createdAtRaw) return;
+
+  const createdAt = new Date(createdAtRaw);
+  if (isNaN(createdAt)) return;
+
+  const daysSinceSignup = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+  const daysLeft = Math.ceil(7 - daysSinceSignup);
+
+  if (daysLeft <= 0 || daysLeft > 7) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const last = localStorage.getItem('bt_trial_banner');
+  if (last === today) return;
+  localStorage.setItem('bt_trial_banner', today);
+
+  setTimeout(() => {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#7b61ff,#c8f54220);border-bottom:1px solid #7b61ff60;color:#fff;padding:16px 20px;z-index:9999;animation:slideDown .4s ease-out';
+    banner.innerHTML = `
+      <div style="font-weight:700;font-size:14px;margin-bottom:4px">⚡ Estás usando BetTrack PRO gratis</div>
+      <div style="font-size:12px;color:#e0e0ff;line-height:1.5">
+        ${daysLeft === 1
+          ? '⚠️ Hoy es tu último día de prueba — activá PRO para no perder el acceso.'
+          : Te quedan <strong>${daysLeft} día${daysLeft > 1 ? 's' : ''}</strong> de prueba gratis.
+        }
+      </div>
+      <button onclick="this.parentElement.remove()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+    `;
+    document.body.appendChild(banner);
+    setTimeout(() => { if (banner.parentElement) banner.remove(); }, 12000);
+  }, 1200);
 }
 
 // add slideDown animation
