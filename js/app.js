@@ -1138,14 +1138,12 @@ function checkTrialBanner() {
   setTimeout(() => {
     const banner = document.createElement('div');
     banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#7b61ff,#c8f54220);border-bottom:1px solid #7b61ff60;color:#fff;padding:16px 20px;z-index:9999;animation:slideDown .4s ease-out';
+   const msg = daysLeft === 1
+      ? '⚠️ Hoy es tu último día de prueba — activá PRO para no perder el acceso.'
+      : 'Te quedan <strong>' + daysLeft + ' día' + (daysLeft > 1 ? 's' : '') + '</strong> de prueba gratis.';
     banner.innerHTML = `
       <div style="font-weight:700;font-size:14px;margin-bottom:4px">⚡ Estás usando BetTrack PRO gratis</div>
-      <div style="font-size:12px;color:#e0e0ff;line-height:1.5">
-        ${daysLeft === 1
-          ? '⚠️ Hoy es tu último día de prueba — activá PRO para no perder el acceso.'
-          : Te quedan <strong>${daysLeft} día${daysLeft > 1 ? 's' : ''}</strong> de prueba gratis.
-        }
-      </div>
+      <div style="font-size:12px;color:#e0e0ff;line-height:1.5">${msg}</div>
       <button onclick="this.parentElement.remove()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
     `;
     document.body.appendChild(banner);
