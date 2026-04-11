@@ -207,21 +207,15 @@ function renderROI(container) {
     <div style="display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap">
       <select onchange="roiFilters.sport=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.sport?'selected':''}>Todos los deportes</option>
-        <option value="football" ${roiFilters.sport==='football'?'selected':''}>Fútbol</option>
-        <option value="basketball" ${roiFilters.sport==='basketball'?'selected':''}>Basket</option>
-        <option value="tennis" ${roiFilters.sport==='tennis'?'selected':''}>Tenis</option>
+        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).sport; } catch(e) { return null; } }).filter(Boolean))].map(s => `<option value="${s}" ${roiFilters.sport===s?'selected':''}>${s}</option>`).join('')}
       </select>
       <select onchange="roiFilters.marketType=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.marketType?'selected':''}>Todos los mercados</option>
-        <option value="winner" ${roiFilters.marketType==='winner'?'selected':''}>Ganador</option>
-        <option value="overunder" ${roiFilters.marketType==='overunder'?'selected':''}>Over/Under</option>
-        <option value="spread" ${roiFilters.marketType==='spread'?'selected':''}>Spread</option>
+        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).type; } catch(e) { return b.market || null; } }).filter(Boolean))].map(t => `<option value="${t}" ${roiFilters.marketType===t?'selected':''}>${t}</option>`).join('')}
       </select>
       <select onchange="roiFilters.country=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.country?'selected':''}>Todos los países</option>
-        <option value="España" ${roiFilters.country==='España'?'selected':''}>España</option>
-        <option value="Inglaterra" ${roiFilters.country==='Inglaterra'?'selected':''}>Inglaterra</option>
-        <option value="Argentina" ${roiFilters.country==='Argentina'?'selected':''}>Argentina</option>
+        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).country; } catch(e) { return null; } }).filter(Boolean))].map(c => `<option value="${c}" ${roiFilters.country===c?'selected':''}>${c}</option>`).join('')}
       </select>
     </div>
     ${section('Por tipo de mercado', segments.markets)}
