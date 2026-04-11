@@ -207,11 +207,17 @@ function renderROI(container) {
     <div style="display:flex;gap:6px;margin:10px 0 20px;flex-wrap:wrap">
       <select onchange="roiFilters.sport=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.sport?'selected':''}>Todos los deportes</option>
-        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).sport; } catch(e) { return null; } }).filter(Boolean))].map(s => `<option value="${s}" ${roiFilters.sport===s?'selected':''}>${s}</option>`).join('')}
+        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).sport; } catch(e) { return null; } }).filter(Boolean))].map(s => {
+          const label = {football:'⚽ Fútbol', tennis:'🎾 Tenis', basketball:'🏀 Básquet'}[s] || s;
+          return `<option value="${s}" ${roiFilters.sport===s?'selected':''}>${label}</option>`;
+        }).join('')}
       </select>
       <select onchange="roiFilters.marketType=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.marketType?'selected':''}>Todos los mercados</option>
-        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).type; } catch(e) { return b.market || null; } }).filter(Boolean))].map(t => `<option value="${t}" ${roiFilters.marketType===t?'selected':''}>${t}</option>`).join('')}
+        ${[...new Set(closed.map(b => { try { return JSON.parse(b.market).type; } catch(e) { return null; } }).filter(Boolean))].map(t => {
+          const label = {...MARKET_LABELS, ...ALL_MARKET_LABELS_EXTRA}[t] || t;
+          return `<option value="${t}" ${roiFilters.marketType===t?'selected':''}>${label}</option>`;
+        }).join('')}
       </select>
       <select onchange="roiFilters.country=this.value||null;rerenderROI()">
         <option value="" ${!roiFilters.country?'selected':''}>Todos los países</option>
