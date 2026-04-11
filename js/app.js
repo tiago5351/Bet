@@ -6,7 +6,7 @@ let userPlan = 'free';
 function isPro() { return userPlan === 'pro'; }
 
 function goPremium() {
-  window.location.href = 'https://bet-beryl.vercel.app/suscripcion';
+  handleSubscribe();
 }
 
 async function loadUserPlan() {
@@ -273,23 +273,6 @@ window.addEventListener('load', async () => {
   });
 
 });
-
-async function checkPaywall() {
-  if (!currentUser) return false;
-  const isAdmin = currentUser.email === "tiagoblatter@gmail.com";
-  if (isAdmin) return true;
-  const createdAt = new Date(currentUser.created_at);
-  const days = (Date.now() - createdAt) / (1000*60*60*24);
-  if (days <= 7) return true;
-  try {
-    const r = await fetch("https://bet-beryl.vercel.app/api/check-subscription", {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({user_id: currentUser.id})
-    });
-    const {active} = await r.json();
-    return active;
-  } catch(e) { return true; }
-}
 
 async function handleSubscribe() {
   try {
