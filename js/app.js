@@ -15,6 +15,16 @@ async function loadUserPlan() {
     return;
   }
 
+  const adminEmails = [
+    'tiagoblatter@gmail.com',
+    'santiago.segat@icloud.com'
+  ];
+
+  if (adminEmails.includes(currentUser.email)) {
+    userPlan = 'pro';
+    return;
+  }
+  
   // 🧠 TRIAL 7 DÍAS
   const createdAtRaw = currentUser.created_at;
   if (createdAtRaw) {
@@ -643,7 +653,6 @@ function openAddModal() {
   if (currentTab === 'accounts') { openAccountModal(); return; }
   editingBetId = null;
   newBetPhotos = [];
-  selectedOddsEvent = null;
   selectedStatus = 'pending';
   document.getElementById('modal-add-title').textContent = 'Nueva Apuesta';
   document.getElementById('f-title').value = '';
@@ -655,10 +664,7 @@ function openAddModal() {
   document.getElementById('f-real-profit').value = '';
   document.getElementById('f-notes').value = '';
   document.getElementById('photo-previews').innerHTML = '';
-  document.getElementById('odds-results').innerHTML = '';
 
-  const oddsInfo = document.getElementById('odds-monitor-info');
-  if (oddsInfo) oddsInfo.style.display = 'none';
   
   populateAccountSelect();
   updateStatusBtns();
@@ -790,7 +796,6 @@ function editBet(id) {
   document.getElementById('f-odds').value = b.odds||'';
   document.getElementById('f-real-profit').value = b.realProfit||'';
   document.getElementById('f-notes').value = b.notes||'';
-  document.getElementById('odds-results').innerHTML = '';
   
   populateAccountSelect(b.accountId);
   updateStatusBtns();
@@ -811,8 +816,6 @@ async function saveBet() {
     amount: document.getElementById('f-amount').value,
     odds: document.getElementById('f-odds').value,
     realProfit: document.getElementById('f-real-profit').value,
-    oddsEventId: selectedOddsEvent ? selectedOddsEvent.id : (editingBetId ? (bets.find(b=>b.id===editingBetId)||{}).oddsEventId : null),
-    oddsSport: selectedOddsEvent ? selectedOddsEvent.sport : (editingBetId ? (bets.find(b=>b.id===editingBetId)||{}).oddsSport : null),
     status: selectedStatus,
     notes: document.getElementById('f-notes').value.trim(),
     photos: [...newBetPhotos],
