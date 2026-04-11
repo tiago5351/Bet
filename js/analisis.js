@@ -16,6 +16,7 @@ function getBetProfit(b) {
 }
 
 function renderAnalisis(main) {
+  if (!isPro()) { renderPaywall(main); return; }
   const baseBets = filteredBets();
   
   const closed = baseBets.filter(b => b.status !== 'pending' && b.status !== 'cancelled');
