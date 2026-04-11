@@ -225,28 +225,8 @@ window.addEventListener('load', async () => {
 
         let canAccess = true;
 
-    try {
-      const paywallPromise = checkPaywall();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 5000)
-      );
 
-      canAccess = await Promise.race([paywallPromise, timeoutPromise]);
 
-    } catch(e) {
-
-      const isAdmin = currentUser?.email === 'tiagoblatter@gmail.com';
-      const createdAt = new Date(currentUser.created_at);
-      const days = (Date.now() - createdAt) / (1000*60*60*24);
-
-      canAccess = isAdmin || days <= 7;
-    }
-
-    if (!canAccess) {
-      const splash = document.getElementById('splash'); if (splash) splash.style.display = 'none';
-      document.getElementById('paywall-screen').style.display = 'flex';
-      return;
-    }
 
     const splash = document.getElementById('splash'); if (splash) splash.style.opacity = 0;
 
