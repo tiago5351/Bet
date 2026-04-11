@@ -214,7 +214,7 @@ window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
 
   if (!session) {
-    document.getElementById('splash').style.display = 'none';
+    const splash = document.getElementById('splash'); if (splash) splash.style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
   } else {
 
@@ -243,15 +243,15 @@ window.addEventListener('load', async () => {
     }
 
     if (!canAccess) {
-      document.getElementById('splash').style.display = 'none';
+      const splash = document.getElementById('splash'); if (splash) splash.style.display = 'none';
       document.getElementById('paywall-screen').style.display = 'flex';
       return;
     }
 
-    document.getElementById('splash').style.opacity = 0;
+    const splash = document.getElementById('splash'); if (splash) splash.style.opacity = 0;
 
     setTimeout(() => {
-      document.getElementById('splash').style.display = 'none';
+      const splash = document.getElementById('splash'); if (splash) splash.style.display = 'none';
       document.getElementById('app').classList.add('visible');
       initApp();
     }, 400);
